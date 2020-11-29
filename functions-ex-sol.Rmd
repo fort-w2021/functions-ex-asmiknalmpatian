@@ -1,0 +1,141 @@
+## Faszinierend funkelnd funktional -funzen muss es halt!
+
+Lesen Sie das ["Functions"](http://adv-r.had.co.nz/Functions.html)-Kapitel aus dem *Advanced R Programming*-Buch von Hadley Wickham aufmerksam durch.
+
+Bearbeiten Sie die folgenden von dort übernommenen Aufgaben:
+
+a)  Schreiben Sie die folgenden verwirrenden Funktionsaufrufe so um dass sie möglichst klar & einfach zu verstehen sind:
+
+```{r, 1a, eval=FALSE}
+set.seed(20141012)
+
+data_sample <- sample(x = c(1:10, NA), replace = TRUE, size = 20)
+
+unif_sample <- runif(n = 20, min = 0, max = 1)
+
+cor(x = data_sample, y = unif_sample, method = "kendall", use = "pairwise.complete.obs")
+```
+
+b)  Was gibt diese Funktion zurück? Warum? Welches Prinzip illustriert sie?
+
+```{r, 1b, eval=FALSE}
+
+f1 <- function(x = {y <- 1; 2}, y = 0) {
+  x + y
+  # y + x 
+  # c(y, x, y)
+}
+f1()
+
+# Es geht um das Prinzip von name masking.
+# Diese Funktion gibt 3 zurueck, da y der Wert 1 und x der Wert
+# 2 als default Argumente uebergeben werden (die daraufhin addiert 
+# werden). y = 0 wird somit nicht wirklich gebraucht, wenn fuer x 
+# die default-Einstellung verwendet wird, da dieser bereits einen Wert 
+# innerhalb von Funktions-environment erhalten hat.
+
+# Wenn die letzte Zeile mit y + x ersetzen, resultiert 2. Hier
+# wird zuerst auf den default-Wert von y zugegriffen.
+
+# Erst wenn x aufgerufen wird - wie bei c(y, x, y), kommt
+# der an y gebundene Wert 1 zum Einsatz.
+```
+
+*Hinweis:* Was passiert wenn Sie die letzte Zeile mit `y + x` ersetzen? Mit `c(y, x, y)`?
+
+c)  Was gibt diese Funktion zurück? Warum? Welches Prinzip illustriert sie?
+
+```{r, 1c, eval=FALSE}
+f2 <- function(x = z) {
+  z <- 100
+  x
+}
+f2()
+
+# Diese Funktion gibt 100, also den innerhalb von Funktion definierten Variablenwert
+# der dem Funktionsargument x per default bereits zugewiesen wurde.
+# Wird durch lazy evaluation-Prinzip ermoeglicht.
+```
+
+d)  Schreiben sie eine *infix*-Funktion `%xor%` für `logical`-inputs die eine XOR-Operation (entweder-oder-aber-nicht-beides) durchführt. Überprüfen Sie ihre Funktion mit den folgenden Tests:
+
+```{r, code = readLines("test-functions-xor.R"), eval=FALSE}
+`%xor%` <- function(a, b){
+  checkmate::assert_logical(a)
+  checkmate::assert_logical(b)
+  
+  xor(a, b)
+}
+
+library(testthat)
+
+context("Infix: %xor% ")
+
+test_that("%xor% works as expected for scalar input", {
+  expect_true(TRUE %xor% FALSE)
+  expect_false(TRUE %xor% TRUE)
+  expect_true(FALSE %xor% TRUE)
+  expect_false(FALSE %xor% FALSE)
+})
+
+test_that("%xor% works (element-wise) for vector input", {
+  expect_identical(
+    c(TRUE, TRUE, FALSE, FALSE) %xor% c(FALSE, TRUE, TRUE, FALSE),
+    c(TRUE, FALSE, TRUE, FALSE))
+})
+
+c(TRUE, TRUE, FALSE, FALSE) %xor% c(FALSE, TRUE, TRUE, FALSE)
+
+
+```
+
+e)  Wie kann jeweils der Zustand von `options()` und `par()` abgespeichert und wiederhergestellt werden?
+
+```{r, 1e, eval=FALSE}
+# Save the current state: 
+par_current <- par()
+on.exit(par(par_current))
+
+# Same holds for options:
+options_current <- options()
+on.exit(options(options_current))
+
+# change via par(...) or options(...) as wished for the current function
+```
+
+f)  Schreiben Sie eine Funktion die ein neues PDF-Grafikdevice öffnet, `plot` mit den übergebenen Argumenten aufruft und dann das zuvor geöffnete Grafikfenster wieder schließt, egal ob die übergebenen Argumente für `plot` funktioniert haben oder nicht.
+
+```{r, 1f, eval=FALSE}
+# purpose: Opens pdf device and use given plot and pdf arguments if possible
+# input: arguments of plot() function
+# output: Closes the pdf device
+
+pdf_dev <- function(plot_1 = NULL) {
+  
+  assert_list(plot_1, all.missing = FALSE)
+  
+  pdf()
+  
+  on.exit(dev.off(), add = TRUE)
+  
+  do.call(plot, plot_1)
+  
+  
+}
+
+```
+
+g)  Was gibt der folgende Code zurück? Warum? Was bedeuten die drei verschiedenen `c`s in der zweiten Zeile?
+
+```{r, 1g, eval=FALSE}
+c <- 10
+c(c = c)
+
+# Der folgende Code gibt einen numerischen Vector zurueck, der den Wert 10 mit dem 
+# Namen c enthaelt. 
+# Der erste c() steht fuer die Funktion in R, die einen Vektor erstellt,
+# und von R auch als solche erkannt wird. 
+# Der zweite c steht fuer den Namen "c", der in der Ausgabe auftaucht. 
+# Der dritte c greft auf die in der ersten Zeile definierte Variable (bzw. deren
+# Wert) c zu.
+```
